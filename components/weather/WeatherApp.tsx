@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { SearchBar } from "./SearchBar";
 import { CurrentWeather } from "./CurrentWeather";
 import { DailyForecast } from "./DailyForecast";
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useWeather } from "@/hooks/useWeather";
+import { searchLocalities } from "@/lib/api";
 import { type Locality } from "@/types";
 
 function WeatherSkeleton() {
@@ -45,20 +47,64 @@ export function WeatherApp({
 }: {
   initialLocality?: string;
 }) {
+  const router = useRouter();
+
   const [selectedLocality, setSelectedLocality] = React.useState<Locality | null>(
     null
   );
+  const [urlLoading, setUrlLoading] = React.useState(false);
+  const [urlError, setUrlError] = React.useState<string | null>(null);
 
   const { favorites, add, remove, isFavorite } = useFavorites();
   const { data, loading, error, load, retry } = useWeather();
 
-  const localityToLoad = selectedLocality ?? (data ? data.locality : null);
+  // Au montage, si une localité est passee dans l'URL, on la charge directement.
+  React.useEffect(() => {
+    if (!initialLocality) return;
 
+    let cancelled = false;
+
+    const run = async () => {
+      setUrlLoading(true);
+      setUrlError(null);
+
+      try {
+        const results = await searchLocalities(initialLocality);
+        if (cancelled) return;
+
+        if (results.length === 0) {
+          setUrlError("Aucune localite trouvee pour cette adresse.");
+          setUrlLoading(false);
+          return;
+        }
+
+        const locality = results[0];
+        setSelectedLocality(locality);
+        load(locality);
+      } catch {
+        if (cancelled) return;
+        setUrlError("Impossible de charger la localite depuis cette adresse.");
+      } finally {
+        if (!cancelled) setUrlLoading(false);
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialLocality, load]);
+
+  const localityToLoad = selectedLocality ?? (data ? data.locality : null);
   const isFav = localityToLoad ? isFavorite(localityToLoad.id) : false;
 
   const handleLocalitySelect = (locality: Locality) => {
     setSelectedLocality(locality);
     load(locality);
+    // Met a jour l'adresse dans la barre du navigateur sans recharger la page.
+    // Ainsi, l'URL reste partageable.
+    router.replace(`?locality=${encodeURIComponent(locality.name)}`);
   };
 
   const handleToggleFavorite = () => {
@@ -73,6 +119,44 @@ export function WeatherApp({
   const handleRetry = () => {
     retry();
   };
+
+  // Etat de chargement lorsqu'on vient d'une URL partageable.
+  if (urlLoading && !data) {
+    return (
+      <div className="max-w-5xl mx-auto p-4 space-y-6">
+        <SearchBar onSelect={handleLocalitySelect} />
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center">
+              Chargement depuis l'adresse…
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WeatherSkeleton />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (urlError && !data) {
+    return (
+      <div className="max-w-5xl mx-auto p-4 space-y-6">
+        <SearchBar onSelect={handleLocalitySelect} />
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center text-destructive">
+              Adresse introuvable
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+            <p className="mb-4 text-muted-foreground">{urlError}</p>
+            <RetryButton onRetry={handleRetry} />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (loading && !data) {
     return (
@@ -198,6 +282,7 @@ export function WeatherApp({
                   onClick={() => {
                     setSelectedLocality(fav);
                     load(fav);
+                    router.replace(`?locality=${encodeURIComponent(fav.name)}`);
                   }}
                   className="flex flex-col items-center justify-center gap-2 p-3 rounded-lg border border-border bg-background hover:bg-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
                 >
