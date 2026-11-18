@@ -57,7 +57,7 @@ export async function fetchWeather(locality: {
     latitude: String(locality.latitude),
     longitude: String(locality.longitude),
     current_weather: "true",
-    hourly: "temperature_2m,relative_humidity_2m,apparent_temperature,weathercode,precipitation_probability",
+    hourly: "temperature_2m,relative_humidity_2m,apparent_temperature,weathercode,precipitation,precipitation_probability",
     daily: "weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max",
     timezone: "Africa/Porto-Novo",
   });
@@ -77,6 +77,7 @@ export async function fetchWeather(locality: {
 
   const current = mapCurrentWeather(data);
   const daily = mapDailyForecast(data.daily);
+  const hourly = mapHourlyForecast(data.hourly);
 
   return {
     locality: {
@@ -90,6 +91,7 @@ export async function fetchWeather(locality: {
     },
     current,
     daily,
+    hourly,
   };
 }
 
@@ -148,5 +150,39 @@ function formatDayLabel(isoDate: string): string {
     weekday: "short",
     day: "numeric",
     month: "short",
+  });
+}
+
+function mapHourlyForecast(hourly: any) {
+  if (!hourly || !hourly.time) return [];
+
+  const now = new Date();
+  const currentHour = now.getHours();
+
+  const forecasts = [];
+
+  // Prendre les 24 prochaines heures à partir de l'heure actuelle
+  for (let i = currentHour; i < Math.min(currentHour + 24, hourly.time.length); i++) {
+    const time = hourly.time[i];
+    const hourLabel = formatHourLabel(time);
+    forecasts.push({
+      time,
+      hourLabel,
+      temperature: Math.round(hourly.temperature_2m?.[i] ?? 0),
+      precipitation: hourly.precipitation?.[i] ?? 0,
+      weatherCode: hourly.weathercode?.[i] ?? 0,
+    });
+  }
+
+  return forecasts;
+}
+
+function formatHourLabel(isoTime: string): string {
+  // isoTime est au format "YYYY-MM-DDTHH:00"
+  const date = new Date(isoTime);
+  return date.toLocaleTimeString("fr-BJ", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
   });
 }

@@ -7,6 +7,7 @@ import { SearchBar } from "./SearchBar";
 import { CurrentWeather } from "./CurrentWeather";
 import { DailyForecast } from "./DailyForecast";
 import { FavoriteButton } from "./FavoriteButton";
+import { HourlyChart } from "./HourlyChart";
 import { RetryButton } from "./RetryButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -328,7 +329,7 @@ export function WeatherApp({
     );
   }
 
-  const { locality, current, daily } = data;
+  const { locality, current, daily, hourly } = data;
 
   return (
     <div className="max-w-5xl mx-auto p-4 space-y-6">
@@ -416,6 +417,18 @@ export function WeatherApp({
         <CardContent className="pt-0">
           <CurrentWeather data={current} localityName={locality.name} />
           <DailyForecast data={daily} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Evolution des 24 prochaines heures</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Temperature et pluie heure par heure a l'heure locale du Benin.
+          </p>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <HourlyChart data={hourly} />
         </CardContent>
       </Card>
 

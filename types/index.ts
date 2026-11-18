@@ -30,10 +30,19 @@ export interface DailyForecast {
   isRainAlert: boolean;
 }
 
+export interface HourlyForecast {
+  time: string; // heure locale Bénin, ex: "14:00"
+  hourLabel: string; // libellé d'heure affiché, ex: "14:00"
+  temperature: number;
+  precipitation: number; // mm
+  weatherCode: number;
+}
+
 export interface WeatherData {
   locality: Locality;
   current: CurrentWeather;
   daily: DailyForecast[];
+  hourly: HourlyForecast[];
 }
 
 export interface WeatherState {
