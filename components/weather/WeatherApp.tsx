@@ -467,7 +467,7 @@ export function WeatherApp({
         </nav>
       </motion.div>
 
-      <main className="relative z-20 flex-1 max-w-5xl mx-auto p-6">
+      <main className="relative z-20 flex-1 max-w-5xl mx-auto p-6 pt-[100px]">
         {/* Recherche */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
