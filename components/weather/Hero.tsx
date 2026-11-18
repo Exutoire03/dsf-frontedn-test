@@ -46,7 +46,7 @@ export function Hero({ onSelect }: HeroProps) {
         className="absolute inset-0"
         style={{
           backgroundImage:
-            "url('https://images.unsplash.com/photo-1517648721723-9989424c9e6c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80')",
+            "url('/Statue%20africaine%20en%20bronze%20sous%20un%20ciel%20bleu.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
