@@ -48,7 +48,7 @@ export function Hero({ onSelect }: HeroProps) {
           backgroundImage:
             "url('/Statue%20africaine%20en%20bronze%20sous%20un%20ciel%20bleu.png')",
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundPosition: "top",
         }}
       />
       <div className="absolute inset-0 bg-black/40" />

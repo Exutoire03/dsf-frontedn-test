@@ -51,7 +51,7 @@ npm test
 | Météo actuelle : température, ressenti, humidité, vent, description FR, pictogramme | ✅ |
 | Prévisions sur 7 jours : date FR, min/max, pluie (1 décimale), probabilité, pictogramme | ✅ |
 | Favoris : ajout/retrait, persistance après rechargement, pas de doublons | ✅ |
-| États de feedback : chargement, aucun résultat, erreur API avec bouton "Réessayer" | ✅ |
+| États de feedback : chargement, aucun résultat, erreur API avec bouton "Reessayer" | ✅ |
 | Pas de page blanche, messages en français clairs | ✅ |
 
 ### Règles de gestion respectées
@@ -65,7 +65,7 @@ npm test
 - Responsive mobile-first (360 px et plus), pas de défilement horizontal
 - Jamais de page blanche, jamais de message technique incompréhensible
 
-### Bonus réalisés (4 sur 6)
+### Bonus réalisés (5 sur 6)
 
 | Bonus | Statut |
 |-------|--------|
@@ -83,6 +83,7 @@ npm test
 | Framework | Next.js 16 (App Router) | Routing fichier-based, déploiement facile sur Vercel, rendu serveur/client hybride |
 | Langage | TypeScript | Sécurité du code, lisibilité, maintenabilité |
 | Styling | Tailwind CSS v4 | Design mobile-first, responsive, cohérent, sans fichiers CSS volumineux |
+| Animations | Framer Motion | Transitions fluides, apparitions échelonnées, header qui se cache au scroll |
 | Icônes | Lucide React | Icônes propres, légères, accessibles |
 | Graphique | Recharts | Graphique réactif, léger, personnalisable |
 | Tests | Vitest | Tests unitaires rapides, configuration minimale |
@@ -94,20 +95,22 @@ npm test
 ```
 app/
   layout.tsx      # Racine : métadonnées, langue fr-FR
-  page.tsx        # Server Component : lit l'URL (?locality=)
+  page.tsx        # Server Component : lit l'URL (?locality=) via Suspense
 components/
   ui/             # Design système : Button, Card, Badge, Input, Label, Skeleton
   weather/        # Composants métiers :
     WeatherApp.tsx        # Orchestrateur client (état, favoris, retry, géolocalisation)
+    Hero.tsx              # Page d'accueil immersive avec image de fond
     SearchBar.tsx         # Recherche avec debounce, navigation clavier, ARIA
-    CurrentWeather.tsx    # Météo actuelle
+    CurrentWeather.tsx    # Météo actuelle, grande température, icône météo
     DailyForecast.tsx     # Prévisions 7 jours + badge Vigilance pluie
-    FavoriteButton.tsx    # Ajouter/retirer favori
-    RetryButton.tsx       # Bouton Réessayer
+    FavoriteButton.tsx    # Ajouter/retirer favori (étoile)
+    RetryButton.tsx       # Bouton Reessayer
     WeatherIcon.tsx       # Icône selon code WMO
+    WeatherBackground.tsx # Fond animé selon la météo (soleil, pluie, orage, etc.)
     HourlyChart.tsx       # Graphique 24h (Recharts)
 hooks/
-  useDebounce.ts   # Anti-spam d'appels API
+  useDebounce.ts   # Anti-spam d'appels API (300ms)
   useFavorites.ts  # localStorage, pas de doublons
   useWeather.ts    # État chargement/données/erreur + retry
 lib/
@@ -118,6 +121,8 @@ types/
   index.ts         # Types TypeScript stricts
 lib/__tests__/
   weather-codes.test.ts  # Tests unitaires (traduction + vigilance)
+public/
+  Statue africaine en bronze sous un ciel bleu.png  # Image de fond d'accueil
 ```
 
 ## État d'avancement
