@@ -129,22 +129,7 @@ public/
 
 Le socle obligatoire est entièrement fonctionnel et vérifié par le build de production. Les 5 premiers bonus sont implémentés. Le déploiement en ligne est la dernière étape.
 
-## Déploiement en ligne (Vercel)
 
-1. Pousser ce dépôt sur GitHub (dépôt public ou privé avec accès aux adresses du jury).
-2. Se connecter sur [vercel.com](https://vercel.com) avec un compte GitHub.
-3. Cliquer sur "Add New Project" et importer ce dépôt.
-4. Vercel détecte automatiquement Next.js et propose les bons réglages.
-5. Cliquer sur "Deploy".
-6. Une fois déployé, indiquer l'URL Vercel dans ce README (section "Demo en ligne").
-
-## Remise du travail
-
-- Dépôt Git accessible au jury (GitHub, GitLab ou équivalent).
-- Envoyer l'URL du dépôt par email avant la fin du temps imparti.
-- Objet : `Étude de cas DSF 2026 – Frontend – [Votre Nom]`
-- Destinataire : fhounmenou@asin.bj
-- Copie : jbgandonou@presidence.bj, olabissi@wds.africa, serge@wds.africa
 
 ## Données
 
