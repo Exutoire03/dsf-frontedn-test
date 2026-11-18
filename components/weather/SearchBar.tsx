@@ -146,7 +146,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
             onChange={handleInputChange}
             onFocus={() => setOpen(results.length > 0)}
             onKeyDown={handleKeyDown}
-            className="pl-10"
+            className="pl-10 placeholder:text-foreground/60"
             disabled={loading}
           />
           {loading && (
@@ -265,7 +265,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
         )}
       </div>
 
-      <p className="mt-2 text-xs text-muted-foreground">
+      <p className="mt-2 text-xs text-foreground">
         Tapez au moins 2 caracteres pour rechercher une ville ou une commune du
         Benin.
       </p>

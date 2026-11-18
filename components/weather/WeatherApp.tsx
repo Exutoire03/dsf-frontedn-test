@@ -226,7 +226,7 @@ export function WeatherApp({
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <nav className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold">🇧🇯</span>
               <div>
@@ -276,7 +276,7 @@ export function WeatherApp({
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <nav className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold">🇧🇯</span>
               <div>
@@ -307,7 +307,7 @@ export function WeatherApp({
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <nav className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold">🇧🇯</span>
               <div>
@@ -347,7 +347,7 @@ export function WeatherApp({
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <nav className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold">🇧🇯</span>
               <div>
@@ -377,7 +377,7 @@ export function WeatherApp({
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <nav className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold">🇧🇯</span>
               <div>
@@ -426,7 +426,7 @@ export function WeatherApp({
         className="fixed top-0 left-0 right-0 z-40"
       >
         <nav className="border-b border-white/20 bg-white/10 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold">🇧🇯</span>
               <div>
