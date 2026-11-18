@@ -85,9 +85,7 @@ export function Hero({ onSelect }: HeroProps) {
                 onSelect={onSelect}
                 textColor="white"
               />
-              <p className="text-xs text-white/60">
-                Tapez au moins 2 caracteres pour chercher une ville.
-              </p>
+              
             </div>
 
             <div className="flex flex-wrap justify-center gap-2">
