@@ -62,6 +62,9 @@ export function WeatherApp({
   const [positionError, setPositionError] = React.useState<string | null>(null);
   const [headerHidden, setHeaderHidden] = React.useState(false);
   const [lastScrollY, setLastScrollY] = React.useState(0);
+  const [view, setView] = React.useState<'home' | 'weather'>(
+    initialLocality ? 'weather' : 'home'
+  );
 
   const { favorites, add, remove, isFavorite } = useFavorites();
   const { data, loading, error, load, retry } = useWeather();
@@ -137,8 +140,15 @@ export function WeatherApp({
 
   const handleLocalitySelect = (locality: Locality) => {
     setSelectedLocality(locality);
+    setView('weather');
     load(locality);
     router.replace(`?locality=${encodeURIComponent(locality.name)}`);
+  };
+
+  const handleGoHome = () => {
+    setSelectedLocality(null);
+    setView('home');
+    router.replace('/');
   };
 
   const handleUseMyPosition = () => {
@@ -213,13 +223,25 @@ export function WeatherApp({
 
   const closePositionError = () => setPositionError(null);
 
-  if (!data && !loading && !error && !urlError && !positionError) {
+  if (view === 'home') {
     return <Hero onSelect={handleLocalitySelect} />;
   }
 
   const baseHeader = (
     <div className="max-w-7xl mx-auto px-4 py-2 sm:px-6 sm:py-3 md:px-6 md:py-3 flex items-center justify-between">
-      <div className="flex items-center gap-2">
+      {view === 'weather' && (
+        <button
+          type="button"
+          onClick={handleGoHome}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-white/30 bg-white/10 text-[11px] font-medium text-white hover:bg-white/20 transition-colors"
+        >
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Retour
+        </button>
+      )}
+      <div className="flex items-center gap-2 ml-2">
         <span className="text-2xl font-bold">🇧🇯</span>
         <div>
           <h1 className="text-lg font-bold text-white">Meteo Benin</h1>
