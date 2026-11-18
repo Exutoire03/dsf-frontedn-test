@@ -7,6 +7,7 @@ import { searchLocalities } from "@/lib/api";
 import type { Locality } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface SearchBarProps {
   onSelect: (locality: Locality) => void;
@@ -18,6 +19,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [open, setOpen] = React.useState(false);
+  const [highlightedIndex, setHighlightedIndex] = React.useState(-1);
 
   const debouncedQuery = useDebounce(query, 300);
 
@@ -29,6 +31,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
         setResults([]);
         setError(null);
         setOpen(false);
+        setHighlightedIndex(-1);
         return;
       }
 
@@ -40,16 +43,18 @@ export function SearchBar({ onSelect }: SearchBarProps) {
         if (!cancelled) {
           setResults(data);
           setOpen(data.length > 0);
+          setHighlightedIndex(data.length > 0 ? 0 : -1);
         }
       } catch (err) {
         if (!cancelled) {
           setError(
             err instanceof Error
               ? err.message
-              : "Impossible de rechercher des localités. Réessayez."
+              : "Impossible de rechercher des localites. Reessayez."
           );
           setResults([]);
           setOpen(false);
+          setHighlightedIndex(-1);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -68,31 +73,79 @@ export function SearchBar({ onSelect }: SearchBarProps) {
     setError(null);
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!open || results.length === 0) return;
+
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        setHighlightedIndex((prev) =>
+          prev >= results.length - 1 ? 0 : prev + 1
+        );
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        setHighlightedIndex((prev) =>
+          prev <= 0 ? results.length - 1 : prev - 1
+        );
+        break;
+      case "Enter":
+        event.preventDefault();
+        if (highlightedIndex >= 0 && highlightedIndex < results.length) {
+          handleSelect(results[highlightedIndex]);
+        }
+        break;
+      case "Escape":
+        event.preventDefault();
+        setOpen(false);
+        setHighlightedIndex(-1);
+        setError(null);
+        break;
+    }
+  };
+
   const handleSelect = (locality: Locality) => {
     onSelect(locality);
     setQuery(locality.name);
     setResults([]);
     setOpen(false);
+    setHighlightedIndex(-1);
+  };
+
+  const handleResultMouseEnter = (index: number) => {
+    setHighlightedIndex(index);
   };
 
   return (
     <section aria-labelledby="search-heading">
       <h2 id="search-heading" className="sr-only">
-        Rechercher une localité au Bénin
+        Rechercher une localite au Benin
       </h2>
 
       <div className="relative w-full max-w-2xl">
         <label htmlFor="locality-search" className="sr-only">
-          Rechercher une ville ou une commune au Bénin
+          Rechercher une ville ou une commune au Benin
         </label>
         <div className="flex items-center">
-          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
+          <Search
+            className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2"
+            aria-hidden="true"
+          />
           <Input
             id="locality-search"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls="locality-results"
+            aria-activedescendant={
+              highlightedIndex >= 0
+                ? `locality-result-${highlightedIndex}`
+                : undefined
+            }
             placeholder="Ex: Cotonou, Parakou, Porto-Novo…"
             value={query}
             onChange={handleInputChange}
             onFocus={() => setOpen(results.length > 0)}
+            onKeyDown={handleKeyDown}
             className="pl-10"
             disabled={loading}
           />
@@ -129,7 +182,10 @@ export function SearchBar({ onSelect }: SearchBarProps) {
         </div>
 
         {error && (
-          <div className="mt-2 p-3 rounded-lg border border-destructive/50 bg-destructive/50 text-destructive text-sm">
+          <div
+            role="alert"
+            className="mt-2 p-3 rounded-lg border border-destructive/50 bg-destructive/50 text-destructive text-sm"
+          >
             {error}
             <button
               type="button"
@@ -138,6 +194,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
                 setQuery("");
                 setResults([]);
                 setOpen(false);
+                setHighlightedIndex(-1);
               }}
               className="ml-2 text-destructive underline underline-offset-4 hover:text-destructive/90 text-xs font-medium"
             >
@@ -147,13 +204,22 @@ export function SearchBar({ onSelect }: SearchBarProps) {
         )}
 
         {open && results.length > 0 && (
-          <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-background shadow-lg">
-            {results.map((locality) => (
+          <div
+            id="locality-results"
+            role="listbox"
+            aria-label="Resultats de recherche"
+            className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-background shadow-lg max-h-64 overflow-y-auto"
+          >
+            {results.map((locality, index) => (
               <button
                 key={locality.id}
+                id={`locality-result-${index}`}
                 type="button"
+                role="option"
+                aria-selected={highlightedIndex === index}
                 onClick={() => handleSelect(locality)}
-                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-secondary focus:outline-none focus:bg-secondary transition-colors"
+                onMouseEnter={() => handleResultMouseEnter(index)}
+                className={cnListboxItem(highlightedIndex === index)}
               >
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{locality.name}</span>
@@ -168,23 +234,50 @@ export function SearchBar({ onSelect }: SearchBarProps) {
                     </span>
                   )}
                 </div>
-                <ChevronRight className="w-3 h-3 text-muted-foreground" aria-hidden="true" />
+                <ChevronRight
+                  className="w-3 h-3 text-muted-foreground"
+                  aria-hidden="true"
+                />
               </button>
             ))}
           </div>
         )}
 
+        {open && results.length > 0 && (
+          <div
+            aria-live="polite"
+            aria-atomic="true"
+            className="sr-only"
+          >
+            {results.length} localite{results.length > 1 ? "s" : ""} trouvee{
+              results.length > 1 ? "s" : ""
+            }. Utilisez les fleches pour naviguer, Entree pour selectionner.
+          </div>
+        )}
+
         {query.trim().length >= 2 && !loading && !error && results.length === 0 && (
-          <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-background shadow-lg p-3 text-sm text-muted-foreground">
-            Aucune localité trouvée au Bénin.
+          <div
+            role="status"
+            className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-background shadow-lg p-3 text-sm text-muted-foreground"
+          >
+            Aucune localite trouvee au Benin.
           </div>
         )}
       </div>
 
       <p className="mt-2 text-xs text-muted-foreground">
-        Tapez au moins 2 caractères pour rechercher une ville ou une commune du
-        Bénin.
+        Tapez au moins 2 caracteres pour rechercher une ville ou une commune du
+        Benin.
       </p>
     </section>
+  );
+}
+
+function cnListboxItem(isSelected: boolean): string {
+  return cn(
+    "w-full flex items-center justify-between px-4 py-3 text-left transition-colors outline-none",
+    isSelected
+      ? "bg-primary text-primary-foreground"
+      : "hover:bg-secondary focus:bg-secondary"
   );
 }
