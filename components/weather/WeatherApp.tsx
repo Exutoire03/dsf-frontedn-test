@@ -59,9 +59,27 @@ export function WeatherApp({
   const [urlError, setUrlError] = React.useState<string | null>(null);
   const [positionLoading, setPositionLoading] = React.useState(false);
   const [positionError, setPositionError] = React.useState<string | null>(null);
+  const [headerHidden, setHeaderHidden] = React.useState(false);
+  const [lastScrollY, setLastScrollY] = React.useState(0);
 
   const { favorites, add, remove, isFavorite } = useFavorites();
   const { data, loading, error, load, retry } = useWeather();
+
+  // Header qui se cache quand on scroll vers le bas et réapparaît quand on scroll vers le haut
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 80) {
+        setHeaderHidden(true);
+      } else if (currentScrollY < lastScrollY) {
+        setHeaderHidden(false);
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   // Au montage, si une localité est passée dans l'URL, on la charge directement.
   React.useEffect(() => {
@@ -401,46 +419,53 @@ export function WeatherApp({
       {/* Overlay sombre pour lisibilité du texte */}
       <div className="fixed inset-0 bg-black/20 z-10" />
 
-      <nav className="fixed top-0 left-0 right-0 z-40 border-b border-white/20 bg-white/10 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl font-bold">🇧🇯</span>
-            <div>
-              <h1 className="text-xl font-bold text-white">Meteo Benin</h1>
-              <p className="text-xs text-white/70">Prévisions locales pour les collectivités</p>
+      <motion.div
+        initial={{ y: 0 }}
+        animate={{ y: headerHidden ? -70 : 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="fixed top-0 left-0 right-0 z-40"
+      >
+        <nav className="border-b border-white/20 bg-white/10 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-bold">🇧🇯</span>
+              <div>
+                <h1 className="text-xl font-bold text-white">Meteo Benin</h1>
+                <p className="text-xs text-white/70">Prévisions locales pour les collectivités</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleUseMyPosition}
+                disabled={positionLoading}
+                aria-label={
+                  positionLoading
+                    ? "Détermination de votre position en cours"
+                    : "Afficher la météo de votre position actuelle"
+                }
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-white/30 bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {positionLoading ? (
+                  <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <MapPin className="w-4 h-4" aria-hidden="true" />
+                )}
+                <span>{positionLoading ? "Position…" : "Ma position"}</span>
+              </button>
+              <FavoriteButton
+                isFavorite={isFav}
+                onToggle={handleToggleFavorite}
+                localityName={locality.name}
+              />
             </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleUseMyPosition}
-              disabled={positionLoading}
-              aria-label={
-                positionLoading
-                  ? "Détermination de votre position en cours"
-                  : "Afficher la météo de votre position actuelle"
-              }
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-white/30 bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors disabled:opacity-50 disabled:pointer-events-none"
-            >
-              {positionLoading ? (
-                <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              ) : (
-                <MapPin className="w-4 h-4" aria-hidden="true" />
-              )}
-              <span>{positionLoading ? "Position…" : "Ma position"}</span>
-            </button>
-            <FavoriteButton
-              isFavorite={isFav}
-              onToggle={handleToggleFavorite}
-              localityName={locality.name}
-            />
-          </div>
-        </div>
-      </nav>
+        </nav>
+      </motion.div>
 
       <main className="relative z-20 flex-1 max-w-5xl mx-auto p-6">
         {/* Recherche */}
