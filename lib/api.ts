@@ -161,7 +161,6 @@ function mapHourlyForecast(hourly: any) {
 
   const forecasts = [];
 
-  // Prendre les 24 prochaines heures à partir de l'heure actuelle
   for (let i = currentHour; i < Math.min(currentHour + 24, hourly.time.length); i++) {
     const time = hourly.time[i];
     const hourLabel = formatHourLabel(time);

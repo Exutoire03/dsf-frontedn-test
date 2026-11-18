@@ -11,6 +11,7 @@ import { DailyForecast } from "./DailyForecast";
 import { FavoriteButton } from "./FavoriteButton";
 import { RetryButton } from "./RetryButton";
 import { WeatherBackground } from "./WeatherBackground";
+import { HourlyChart } from "./HourlyChart";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
@@ -65,7 +66,6 @@ export function WeatherApp({
   const { favorites, add, remove, isFavorite } = useFavorites();
   const { data, loading, error, load, retry } = useWeather();
 
-  // Header qui se cache quand on scroll vers le bas et réapparaît quand on scroll vers le haut
   React.useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -81,7 +81,6 @@ export function WeatherApp({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // Au montage, si une localité est passée dans l'URL, on la charge directement.
   React.useEffect(() => {
     if (!initialLocality) return;
 
@@ -101,7 +100,7 @@ export function WeatherApp({
         const localities = (results.results || []).map(
           (item: any) => ({
             id: `${item.latitude}-${item.longitude}`,
-            name: item.name || "Localité inconnue",
+            name: item.name || "Localite inconnue",
             department: item.admin1 || "",
             population: item.population,
             latitude: item.latitude,
@@ -111,7 +110,7 @@ export function WeatherApp({
         );
 
         if (localities.length === 0) {
-          setUrlError("Aucune localité trouvée pour cette adresse.");
+          setUrlError("Aucune localite trouvee pour cette adresse.");
           setUrlLoading(false);
           return;
         }
@@ -120,7 +119,7 @@ export function WeatherApp({
         load(localities[0]);
       } catch {
         if (cancelled) return;
-        setUrlError("Impossible de charger la localité depuis cette adresse.");
+        setUrlError("Impossible de charger la localite depuis cette adresse.");
       } finally {
         if (!cancelled) setUrlLoading(false);
       }
@@ -145,7 +144,7 @@ export function WeatherApp({
   const handleUseMyPosition = () => {
     if (!navigator.geolocation) {
       setPositionError(
-        "La géolocalisation n'est pas supportée par ce navigateur."
+        "La geolocalisation n'est pas supportee par ce navigateur."
       );
       return;
     }
@@ -176,7 +175,7 @@ export function WeatherApp({
         switch (error.code) {
           case error.PERMISSION_DENIED:
             setPositionError(
-              "Vous avez refusé la géolocalisation. Cherchez une ville manuellement."
+              "Vous avez refuse la geolocalisation. Cherchez une ville manuellement."
             );
             break;
           case error.POSITION_UNAVAILABLE:
@@ -186,12 +185,12 @@ export function WeatherApp({
             break;
           case error.TIMEOUT:
             setPositionError(
-              "Le temps de géolocalisation est dépassé. Réessayez."
+              "Le temps de geolocalisation est depasse. Reessayez."
             );
             break;
           default:
             setPositionError(
-              "Impossible de déterminer votre position. Cherchez une ville."
+              "Impossible de determiner votre position. Cherchez une ville."
             );
         }
       },
@@ -214,51 +213,70 @@ export function WeatherApp({
 
   const closePositionError = () => setPositionError(null);
 
-  // Aucune donnée : afficher le Hero (page d'accueil immersive)
   if (!data && !loading && !error && !urlError && !positionError) {
-    return (
-      <Hero onSelect={handleLocalitySelect} />
-    );
+    return <Hero onSelect={handleLocalitySelect} />;
   }
 
-  // État de chargement quand on vient d'une URL partagée.
+  const baseHeader = (
+    <div className="max-w-7xl mx-auto px-4 py-2 sm:px-6 sm:py-3 md:px-6 md:py-3 flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <span className="text-2xl font-bold">🇧🇯</span>
+        <div>
+          <h1 className="text-lg font-bold text-white">Meteo Benin</h1>
+          <p className="text-[10px] text-white/70">
+            Previsions locales pour les collectivites
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleUseMyPosition}
+          disabled={positionLoading}
+          aria-label={
+            positionLoading
+              ? "Determination de votre position en cours"
+              : "Afficher la meteo de votre position actuelle"
+          }
+          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-white/30 bg-white/10 text-[11px] font-medium text-white hover:bg-white/20 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+        >
+          {positionLoading ? (
+            <svg className="w-3 h-3 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <MapPin className="w-3 h-3" aria-hidden="true" />
+          )}
+          <span className="hidden sm:inline">
+            {positionLoading ? "Position…" : "Ma position"}
+          </span>
+        </button>
+        <FavoriteButton
+          isFavorite={isFav}
+          onToggle={handleToggleFavorite}
+          localityName={localityToLoad!.name}
+        />
+      </div>
+    </div>
+  );
+
+  const renderSearchBar = () => (
+    <SearchBar
+      onSelect={handleLocalitySelect}
+      textColor="white"
+    />
+  );
+
   if (urlLoading && !data) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <nav className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold">🇧🇯</span>
-              <div>
-                <h1 className="text-xl font-bold">Meteo Benin</h1>
-                <p className="text-xs text-muted-foreground">
-                  Prévisions locales pour les collectivités
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleUseMyPosition}
-                disabled={positionLoading}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-background text-sm font-medium hover:bg-secondary transition-colors disabled:opacity-50 disabled:pointer-events-none"
-              >
-                {positionLoading ? (
-                  <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  <MapPin className="w-4 h-4" aria-hidden="true" />
-                )}
-                <span>{positionLoading ? "Position…" : "Ma position"}</span>
-              </button>
-            </div>
-          </div>
+        <nav className="border-b border-border bg-background sticky top-0 z-50">
+          {baseHeader}
         </nav>
-
-        <div className="max-w-5xl mx-auto p-4 space-y-6">
-          <SearchBar onSelect={handleLocalitySelect} />
+        <div className="max-w-5xl mx-auto p-4 space-y-6 pt-[100px]">
+          {renderSearchBar()}
           <Card>
             <CardHeader>
               <CardTitle className="text-center">Chargement depuis l'adresse…</CardTitle>
@@ -275,23 +293,16 @@ export function WeatherApp({
   if (urlError && !data) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <nav className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold">🇧🇯</span>
-              <div>
-                <h1 className="text-xl font-bold">Meteo Benin</h1>
-                <p className="text-xs text-muted-foreground">Prévisions locales pour les collectivités</p>
-              </div>
-            </div>
-          </div>
+        <nav className="border-b border-border bg-background sticky top-0 z-50">
+          {baseHeader}
         </nav>
-
-        <div className="max-w-5xl mx-auto p-4 space-y-6">
-          <SearchBar onSelect={handleLocalitySelect} />
+        <div className="max-w-5xl mx-auto p-4 space-y-6 pt-[100px]">
+          {renderSearchBar()}
           <Card>
             <CardHeader>
-              <CardTitle className="text-center text-destructive">Adresse introuvable</CardTitle>
+              <CardTitle className="text-center text-destructive">
+                Adresse introuvable
+              </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center py-8 text-center">
               <p className="mb-4 text-muted-foreground">{urlError}</p>
@@ -306,23 +317,16 @@ export function WeatherApp({
   if (positionError && !data) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <nav className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold">🇧🇯</span>
-              <div>
-                <h1 className="text-xl font-bold">Meteo Benin</h1>
-                <p className="text-xs text-muted-foreground">Prévisions locales pour les collectivités</p>
-              </div>
-            </div>
-          </div>
+        <nav className="border-b border-border bg-background sticky top-0 z-50">
+          {baseHeader}
         </nav>
-
-        <div className="max-w-5xl mx-auto p-4 space-y-6">
-          <SearchBar onSelect={handleLocalitySelect} />
+        <div className="max-w-5xl mx-auto p-4 space-y-6 pt-[100px]">
+          {renderSearchBar()}
           <Card>
             <CardHeader>
-              <CardTitle className="text-center text-destructive">Position introuvable</CardTitle>
+              <CardTitle className="text-center text-destructive">
+                Position introuvable
+              </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center py-8 text-center">
               <p className="mb-4 text-muted-foreground">{positionError}</p>
@@ -346,23 +350,14 @@ export function WeatherApp({
   if (loading && !data) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <nav className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold">🇧🇯</span>
-              <div>
-                <h1 className="text-xl font-bold">Meteo Benin</h1>
-                <p className="text-xs text-muted-foreground">Prévisions locales pour les collectivités</p>
-              </div>
-            </div>
-          </div>
+        <nav className="border-b border-border bg-background sticky top-0 z-50">
+          {baseHeader}
         </nav>
-
-        <div className="max-w-5xl mx-auto p-4 space-y-6">
-          <SearchBar onSelect={handleLocalitySelect} />
+        <div className="max-w-5xl mx-auto p-4 space-y-6 pt-[100px]">
+          {renderSearchBar()}
           <Card>
             <CardHeader>
-              <CardTitle className="text-center">Chargement de la météo…</CardTitle>
+              <CardTitle className="text-center">Chargement de la meteo…</CardTitle>
             </CardHeader>
             <CardContent>
               <WeatherSkeleton />
@@ -376,23 +371,16 @@ export function WeatherApp({
   if (error && !data) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <nav className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold">🇧🇯</span>
-              <div>
-                <h1 className="text-xl font-bold">Meteo Benin</h1>
-                <p className="text-xs text-muted-foreground">Prévisions locales pour les collectivités</p>
-              </div>
-            </div>
-          </div>
+        <nav className="border-b border-border bg-background sticky top-0 z-50">
+          {baseHeader}
         </nav>
-
-        <div className="max-w-5xl mx-auto p-4 space-y-6">
-          <SearchBar onSelect={handleLocalitySelect} />
+        <div className="max-w-5xl mx-auto p-4 space-y-6 pt-[100px]">
+          {renderSearchBar()}
           <Card>
             <CardHeader>
-              <CardTitle className="text-center text-destructive">Impossible de charger la météo</CardTitle>
+              <CardTitle className="text-center text-destructive">
+                Impossible de charger la meteo
+              </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center py-8 text-center">
               <p className="mb-4 text-muted-foreground">{error}</p>
@@ -404,7 +392,6 @@ export function WeatherApp({
     );
   }
 
-  // Données chargées : affichage météo avec fond animé
   if (!data) {
     return null;
   }
@@ -413,77 +400,35 @@ export function WeatherApp({
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden">
-      {/* Fond animé selon la météo */}
       <WeatherBackground weatherCode={current.weatherCode} />
-
-      {/* Overlay sombre pour lisibilité du texte */}
       <div className="fixed inset-0 bg-black/20 z-10" />
 
       <motion.div
         initial={{ y: 0 }}
-        animate={{ y: headerHidden ? -70 : 0 }}
+        animate={{ y: headerHidden ? -60 : 0 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
         className="fixed top-0 left-0 right-0 z-40"
       >
         <nav className="border-b border-white/20 bg-white/10 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold">🇧🇯</span>
-              <div>
-                <h1 className="text-xl font-bold text-white">Meteo Benin</h1>
-                <p className="text-xs text-white/70">Prévisions locales pour les collectivités</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleUseMyPosition}
-                disabled={positionLoading}
-                aria-label={
-                  positionLoading
-                    ? "Détermination de votre position en cours"
-                    : "Afficher la météo de votre position actuelle"
-                }
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-white/30 bg-white/10 text-white text-sm font-medium hover:bg-white/20 transition-colors disabled:opacity-50 disabled:pointer-events-none"
-              >
-                {positionLoading ? (
-                  <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  <MapPin className="w-4 h-4" aria-hidden="true" />
-                )}
-                <span>{positionLoading ? "Position…" : "Ma position"}</span>
-              </button>
-              <FavoriteButton
-                isFavorite={isFav}
-                onToggle={handleToggleFavorite}
-                localityName={locality.name}
-              />
-            </div>
-          </div>
+          {baseHeader}
         </nav>
       </motion.div>
 
-      <main className="relative z-20 flex-1 max-w-5xl mx-auto p-6 pt-[100px]">
-        {/* Recherche */}
+      <main className="relative z-20 flex-1 max-w-5xl mx-auto p-6 pt-[80px]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-8"
+          className="mb-6"
         >
-          <SearchBar onSelect={handleLocalitySelect} />
+          {renderSearchBar()}
         </motion.div>
 
-        {/* Carte principale météo */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-8"
+          className="mb-6"
         >
           <Card className="relative overflow-hidden border border-white/20 bg-white/10 backdrop-blur-xl shadow-2xl">
             <CardHeader className="flex flex-row items-start justify-between gap-4 pb-6">
@@ -502,7 +447,7 @@ export function WeatherApp({
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium bg-white/20 text-white rounded-full px-2 py-1 uppercase tracking-tighter border border-white/10">
+                <span className="text-[10px] font-medium bg-white/20 text-white rounded-full px-2 py-1 uppercase tracking-tighter border border-white/10">
                   Benin
                 </span>
               </div>
@@ -515,32 +460,29 @@ export function WeatherApp({
           </Card>
         </motion.div>
 
-        {/* Graphique 24h */}
         {hourly && hourly.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-8"
+            className="mb-6"
           >
             <Card className="border border-white/20 bg-white/10 backdrop-blur-xl shadow-2xl">
               <CardHeader>
-                <CardTitle className="text-white">Évolution des 24 prochaines heures</CardTitle>
+                <CardTitle className="text-white">
+                  Evolution des 24 prochaines heures
+                </CardTitle>
                 <p className="text-sm text-white/80">
-                  Température et pluie heure par heure à l'heure locale du Bénin.
+                  Temperature et pluie heure par heure a l'heure locale du Benin.
                 </p>
               </CardHeader>
               <CardContent className="pt-0">
-                {/* HourlyChart sera importé dynamiquement si nécessaire */}
-                <div className="h-80 w-full flex items-center justify-center text-white/50">
-                  Graphique 24h en cours de chargement…
-                </div>
+                <HourlyChart data={hourly} />
               </CardContent>
             </Card>
           </motion.div>
         )}
 
-        {/* Favoris */}
         {favorites.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -550,7 +492,7 @@ export function WeatherApp({
           >
             <Card className="border border-white/20 bg-white/10 backdrop-blur-xl shadow-2xl">
               <CardHeader>
-                <CardTitle className="text-white">Vos localités favorites</CardTitle>
+                <CardTitle className="text-white">Vos localites favorites</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -576,7 +518,7 @@ export function WeatherApp({
         )}
 
         <footer className="mt-12 pt-6 border-t border-white/10 text-xs text-white/50 text-center">
-          Données fournies par{" "}
+          Donnees fournies par{" "}
           <a
             href="https://open-meteo.com"
             target="_blank"
@@ -592,7 +534,7 @@ export function WeatherApp({
             rel="noopener noreferrer"
             className="text-primary hover:underline text-white"
           >
-            Open-Meteo Géocodage
+            Open-Meteo Geocodage
           </a>
         </footer>
       </main>

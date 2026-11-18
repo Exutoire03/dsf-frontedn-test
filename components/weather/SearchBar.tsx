@@ -11,9 +11,13 @@ import { cn } from "@/lib/utils";
 
 interface SearchBarProps {
   onSelect: (locality: Locality) => void;
+  textColor?: "foreground" | "white";
 }
 
-export function SearchBar({ onSelect }: SearchBarProps) {
+export function SearchBar({
+  onSelect,
+  textColor = "foreground",
+}: SearchBarProps) {
   const [query, setQuery] = React.useState("");
   const [results, setResults] = React.useState<Locality[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -116,6 +120,11 @@ export function SearchBar({ onSelect }: SearchBarProps) {
     setHighlightedIndex(index);
   };
 
+  const textColorClass =
+    textColor === "white" ? "text-white" : "text-foreground";
+  const placeholderClass =
+    textColor === "white" ? "placeholder:text-white/70" : "placeholder:text-foreground/60";
+
   return (
     <section aria-labelledby="search-heading">
       <h2 id="search-heading" className="sr-only">
@@ -128,7 +137,9 @@ export function SearchBar({ onSelect }: SearchBarProps) {
         </label>
         <div className="flex items-center">
           <Search
-            className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2"
+            className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ${
+              textColor === "white" ? "text-white/80" : "text-muted-foreground"
+            }`}
             aria-hidden="true"
           />
           <Input
@@ -146,7 +157,13 @@ export function SearchBar({ onSelect }: SearchBarProps) {
             onChange={handleInputChange}
             onFocus={() => setOpen(results.length > 0)}
             onKeyDown={handleKeyDown}
-            className="pl-10 placeholder:text-foreground/60"
+            className={cn(
+              "pl-10",
+              placeholderClass,
+              textColor === "white"
+                ? "text-white border-white/30 bg-white/10"
+                : "text-foreground"
+            )}
             disabled={loading}
           />
           {loading && (
@@ -184,7 +201,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
         {error && (
           <div
             role="alert"
-            className="mt-2 p-3 rounded-lg border border-destructive/50 bg-destructive/50 text-destructive text-sm"
+            className={`mt-2 p-3 rounded-lg border border-destructive/50 bg-destructive/50 text-destructive text-sm`}
           >
             {error}
             <button
@@ -265,7 +282,7 @@ export function SearchBar({ onSelect }: SearchBarProps) {
         )}
       </div>
 
-      <p className="mt-2 text-xs text-foreground">
+      <p className={`mt-2 text-xs ${textColorClass}`}>
         Tapez au moins 2 caracteres pour rechercher une ville ou une commune du
         Benin.
       </p>
